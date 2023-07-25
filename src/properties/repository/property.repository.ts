@@ -69,8 +69,8 @@ function propertyRepositoryFactory(): Pick<IPropertyRepository, any> {
       filters: PropertyFiltersDto,
     ): SelectQueryBuilder<Property> {
       if (filters.address)
-        queryBuilder.andWhere('address = :address', {
-          address: filters.address,
+        queryBuilder.andWhere('address like :address', {
+          address: `%${filters.address}%`,
         });
       if (filters.price)
         queryBuilder.andWhere('price = :price', { price: filters.price });

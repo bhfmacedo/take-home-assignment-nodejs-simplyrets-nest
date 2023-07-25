@@ -61,17 +61,21 @@ export class PaginationMetaDto {
 }
 
 export class PaginationOptionsDto {
-  @ApiProperty({ description: 'The result set page to be returned' })
+  @ApiProperty({
+    required: false,
+    description: 'The result set page to be returned',
+  })
   @IsNumber()
   @Min(PAGINATION_SIZE.MIN_PAGE)
   page: number = 1;
 
   @ApiProperty({
+    required: false,
     description: 'The maximum number of records to be returned',
     example: 10,
   })
   @IsNumber()
   @Min(PAGINATION_SIZE.MIN_ITEMS)
   @Max(PAGINATION_SIZE.MAX_ITEMS)
-  limit: number = 1;
+  limit: number = 10;
 }

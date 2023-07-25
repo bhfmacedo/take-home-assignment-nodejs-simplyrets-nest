@@ -24,7 +24,7 @@ import {
   PaginationOptionsDto,
 } from '../utils/pagination/pagination.dto';
 import { PROPERTY_RESPONSE_TEXT } from '../constants';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { PropertyFiltersDto } from './dto/property-filters.dto';
 import { PropertySortDto } from './dto/sort-property.dto';
 
@@ -41,7 +41,7 @@ export class PropertiesController {
   constructor(private readonly propertiesService: PropertiesService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Create a new creative.' })
+  @ApiOkResponse({ type: EntityResponseDto<Property> })
   async create(
     @Body() createPropertyDto: CreatePropertyDto,
   ): Promise<EntityResponseDto<Property>> {
@@ -54,6 +54,7 @@ export class PropertiesController {
   }
 
   @Get()
+  @ApiOkResponse({ type: PaginatedEntityResponseDto<Property> })
   async findAll(
     @Query() filters: PropertyFiltersDto,
     @Query() orderBy: PropertySortDto,
@@ -71,6 +72,7 @@ export class PropertiesController {
   }
 
   @Get(':id')
+  @ApiOkResponse({ type: EntityResponseDto<Property> })
   async findOne(@Param('id') id: number): Promise<EntityResponseDto<Property>> {
     const data = await this.propertiesService.findOne(id);
     return generateHttpResponse(
@@ -81,6 +83,7 @@ export class PropertiesController {
   }
 
   @Patch(':id')
+  @ApiOkResponse({ type: EntityResponseDto<Property> })
   async update(
     @Param('id') id: number,
     @Body() updatePropertyDto: UpdatePropertyDto,
@@ -94,6 +97,7 @@ export class PropertiesController {
   }
 
   @Delete(':id')
+  @ApiOkResponse({ type: EntityResponseDto<Property> })
   async remove(@Param('id') id: number): Promise<EntityResponseDto<Property>> {
     const data = await this.propertiesService.remove(id);
     return generateHttpResponse(
