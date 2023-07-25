@@ -1,3 +1,5 @@
+// A file to avoid "magic strings" scattered in the code
+
 export const PAGINATION_SIZE = {
   MAX_ITEMS: 1000,
   MIN_ITEMS: 1,

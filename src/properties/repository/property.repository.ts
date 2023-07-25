@@ -16,25 +16,57 @@ import { getDataSourceToken, getRepositoryToken } from '@nestjs/typeorm';
 import { PropertySortByMapping } from '../enum/property.enum';
 import { Provider } from '@nestjs/common';
 
+// Interface for building custom TypeORM repositories. Since TypeORM v0.3
+// is no longer recommended to create custom repositories simply by extending the
+// repository class. Now we need to define the interface and a factory for actually
+// instantiating it.
 export interface IPropertyRepository extends Repository<Property> {
+  // The actual repository
   this: Repository<Property>;
 
+  /**
+   * Finds paginated entities based on the provided pagination options and query builder.
+   *
+   * @param paginationOptions - The pagination options used to control the result set.
+   * @param queryBuilder - An optional parameter representing a customized query.
+   *  If not provided, a new query builder will be created.
+   *
+   * @returns The paginated result set.
+   */
   findPaginated(
     paginationOptions: PaginationOptionsDto,
     queryBuilder?: SelectQueryBuilder<Property>,
   ): Promise<PaginatedEntity<Property>>;
 
+  /**
+   * Applies filters to the given query builder.
+   *
+   * @param queryBuilder - The QueryBuilder to which filters will be applied.
+   * @param filters - Filters to be applied to the query.
+   *
+   * @returns A QueryBuilder instance with the filters applied.
+   */
   filterQueryBuilder(
     queryBuilder: SelectQueryBuilder<Property>,
     filters: PropertyFiltersDto,
   ): SelectQueryBuilder<Property>;
 
+  /**
+   * Applies order by to the given query builder.
+   *
+   * @param queryBuilder - The QueryBuilder to which order by will be applied.
+   * @param orderBy - Order to be applied to the query.
+   *
+   * @returns A QueryBuilder instance with the order by applied.
+   */
   orderQueryBuilder(
     queryBuilder: SelectQueryBuilder<Property>,
     orderBy: PropertySortDto,
   ): SelectQueryBuilder<Property>;
 }
 
+// The factory will return the custom repository implementation. Nest is responsible
+// for calling it when injecting the repository.
 function propertyRepositoryFactory(): Pick<IPropertyRepository, any> {
   return {
     async findPaginated(
@@ -69,21 +101,24 @@ function propertyRepositoryFactory(): Pick<IPropertyRepository, any> {
       filters: PropertyFiltersDto,
     ): SelectQueryBuilder<Property> {
       if (filters.address)
-        queryBuilder.andWhere('address like :address', {
+        // A contain filter, will return address containing the desired filter
+        queryBuilder.andWhere('property.address like :address', {
           address: `%${filters.address}%`,
         });
       if (filters.price)
-        queryBuilder.andWhere('price = :price', { price: filters.price });
+        queryBuilder.andWhere('property.price = :price', {
+          price: filters.price,
+        });
       if (filters.bedrooms)
-        queryBuilder.andWhere('bedrooms = :bedrooms', {
+        queryBuilder.andWhere('property.bedrooms = :bedrooms', {
           bedrooms: filters.bedrooms,
         });
       if (filters.bathrooms)
-        queryBuilder.andWhere('bathrooms = :bathrooms', {
+        queryBuilder.andWhere('property.bathrooms = :bathrooms', {
           bathrooms: filters.bathrooms,
         });
       if (filters.type)
-        queryBuilder.andWhere('type = :type', { type: filters.type });
+        queryBuilder.andWhere('property.type = :type', { type: filters.type });
 
       return queryBuilder;
     },
@@ -94,6 +129,7 @@ function propertyRepositoryFactory(): Pick<IPropertyRepository, any> {
     ): SelectQueryBuilder<Property> {
       if (orderBy)
         return queryBuilder.orderBy(
+          // This mapping avoid verbosity with switch/cases or if/elses
           PropertySortByMapping[orderBy.sort],
           orderBy.order,
           'NULLS LAST',
@@ -102,6 +138,7 @@ function propertyRepositoryFactory(): Pick<IPropertyRepository, any> {
   };
 }
 
+// The actual repository creation
 export function providePropertyRepository(
   dataSource?: DataSource | DataSourceOptions | string,
 ): Provider<any> {
